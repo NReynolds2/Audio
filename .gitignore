@@ -1,0 +1,23 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Executables
+*.hex
+
+#macOS specific
+*.DS_Store
+
+#Atom Packages
+*.tags
+*.tags1
