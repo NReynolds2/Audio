@@ -40,27 +40,6 @@ extern uint16_t AUDIO_SAMPLE[];
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#if defined MEDIA_USB_KEY
- extern __IO uint8_t Command_index;
- static uint32_t wavelen = 0;
- static char* WaveFileName ;
- static __IO uint32_t SpeechDataOffset = 0x00;
- __IO ErrorCode WaveFileStatus = Unvalid_RIFF_ID;
- UINT BytesRead;
- WAVE_FormatTypeDef WAVE_Format;
- uint16_t buffer1[_MAX_SS] ={0x00};
- uint16_t buffer2[_MAX_SS] ={0x00};
- uint8_t buffer_switch = 1;
- extern FATFS fatfs;
- extern FIL file;
- extern FIL fileR;
- extern DIR dir;
- extern FILINFO fno;
- extern uint16_t *CurrentPos;
- extern USB_OTG_CORE_HANDLE USB_OTG_Core;
- extern uint8_t WaveRecStatus;
-#endif
-
 __IO uint32_t XferCplt = 0;
 __IO uint8_t volume = 70, AudioPlayStart = 0;
 __IO uint32_t WaveCounter;
@@ -110,7 +89,6 @@ void WavePlayBack(uint32_t AudioFreq)
   /* Start playing */
   AudioPlayStart = 1;
   RepeatState =0;
-#if defined MEDIA_IntFLASH
 
   /* Initialize wave player (Codec, DMA, I2C) */
   WavePlayerInit(AudioFreq);
@@ -152,88 +130,6 @@ void WavePlayBack(uint32_t AudioFreq)
       LED_Toggle = 4;
     }
   }
-
-#elif defined MEDIA_USB_KEY
-  /* Initialize wave player (Codec, DMA, I2C) */
-  WavePlayerInit(AudioFreq);
-  AudioRemSize   = 0;
-
-  /* Get Data from USB Key */
-  f_lseek(&fileR, WaveCounter);
-  f_read (&fileR, buffer1, _MAX_SS, &BytesRead);
-  f_read (&fileR, buffer2, _MAX_SS, &BytesRead);
-
-  /* Start playing wave */
-  Audio_MAL_Play((uint32_t)buffer1, _MAX_SS);
-  buffer_switch = 1;
-  XferCplt = 0;
-  LED_Toggle = 6;
-  PauseResumeStatus = 1;
-  Count = 0;
-
-  while((WaveDataLength != 0) &&  HCD_IsDeviceConnected(&USB_OTG_Core))
-  {
-    /* Test on the command: Playing */
-    if (Command_index == 0)
-    {
-      /* wait for DMA transfert complete */
-      while((XferCplt == 0) &&  HCD_IsDeviceConnected(&USB_OTG_Core))
-      {
-        if (PauseResumeStatus == 0)
-        {
-          /* Pause Playing wave */
-          LED_Toggle = 0;
-          WavePlayerPauseResume(PauseResumeStatus);
-          PauseResumeStatus = 2;
-        }
-        else if (PauseResumeStatus == 1)
-        {
-          LED_Toggle = 6;
-          /* Resume Playing wave */
-          WavePlayerPauseResume(PauseResumeStatus);
-          PauseResumeStatus = 2;
-        }
-      }
-      XferCplt = 0;
-
-      if(buffer_switch == 0)
-      {
-        /* Play data from buffer1 */
-        Audio_MAL_Play((uint32_t)buffer1, _MAX_SS);
-        /* Store data in buffer2 */
-        f_read (&fileR, buffer2, _MAX_SS, &BytesRead);
-        buffer_switch = 1;
-      }
-      else
-      {
-        /* Play data from buffer2 */
-        Audio_MAL_Play((uint32_t)buffer2, _MAX_SS);
-        /* Store data in buffer1 */
-        f_read (&fileR, buffer1, _MAX_SS, &BytesRead);
-        buffer_switch = 0;
-      }
-    }
-    else
-    {
-      WavePlayerStop();
-      WaveDataLength = 0;
-      RepeatState =0;
-      break;
-    }
-  }
-#if defined PLAY_REPEAT_OFF
-  RepeatState = 1;
-  WavePlayerStop();
-  if (Command_index == 0)
-    LED_Toggle = 4;
-#else
-  LED_Toggle = 7;
-  RepeatState = 0;
-  AudioPlayStart = 0;
-  WavePlayerStop();
-#endif
-#endif
-
 }
 
 /**

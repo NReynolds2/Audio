@@ -1,8 +1,8 @@
 #To RUN:
-#in two different terminals: cd /Users/nicholasreynolds/stm32stexamples/STM32F4-Discovery_FW_V1.1.0/Project/Audio_playback_and_record
+#in two different terminals: cd /Users/nicholasreynolds/Audio-Projects/SamplePedal
 #In one terminal: "make debug"
 #In other terminal: "arm-none-eabi-gdb -x init.gdbinit"
-#OR for visual debugger: "arm-none-eabi-gdb -tui --eval-command="target remote localhost:3333" DIYAudio.elf"
+#OR for visual debugger: "arm-none-eabi-gdb -tui --eval-command="target remote localhost:3333" SamplePedal.elf"
 #			to set breakpoint: "break main.c:51"
 #			to clear breakpoint: "delete Breakpoint 1"
 
