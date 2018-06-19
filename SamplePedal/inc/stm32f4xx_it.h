@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    Audio_playback_and_record/inc/stm32f40x_it.h 
+  * @file    Audio_playback_and_record/inc/stm32f40x_it.h
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    28-October-2011
@@ -17,7 +17,7 @@
   *
   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
   ******************************************************************************
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F40x_IT_H
@@ -25,13 +25,14 @@
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define BUTTON_DEBOUNCE_DELAY                     2 // times 10ms
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 

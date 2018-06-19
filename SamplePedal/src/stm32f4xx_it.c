@@ -49,6 +49,7 @@ __IO uint16_t Time_Rec_Base = 0;
  extern __IO uint8_t Command_index;
 #endif /* MEDIA_USB_KEY */
 
+uint8_t buttonDelayFlag = 0;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -151,13 +152,22 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  TimingDelay_Decrement();
+  TimingDelay_Decrement(); //used in some of the waveplayer fxns to generate a delay
 #if defined MEDIA_USB_KEY
   if ( Command_index == 1)
   {
     Time_Rec_Base ++;
   }
 #endif
+
+  //interrupt supression state machine:
+  if(buttonDelayFlag){
+    buttonDelayFlag++;
+  }
+  
+  if(buttonDelayFlag == BUTTON_DEBOUNCE_DELAY){
+    buttonDelayFlag = 0;
+  }
 }
 
 
@@ -249,16 +259,22 @@ void EXTI0_IRQHandler(void)
 {
   if(EXTI_GetITStatus(EXTI_Line0) != RESET)
   {
-    if( Count==1)
+    if(!buttonDelayFlag)
     {
-      PauseResumeStatus = 1;
-      Count = 0;
+      if( Count==1)
+      {
+        PauseResumeStatus = 1;
+        Count = 0;
+      }
+      else
+      {
+        PauseResumeStatus = 0;
+        Count = 1;
+      }
     }
-    else
-    {
-      PauseResumeStatus = 0;
-      Count = 1;
-    }
+
+    //flag set to supress unncessary interrupts
+    buttonDelayFlag = 1;
     // Clear the EXTI line 0 pending bit
     EXTI_ClearITPendingBit(EXTI_Line0);
   }
