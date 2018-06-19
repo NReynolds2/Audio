@@ -176,7 +176,7 @@ int WavePlayerInit(uint32_t AudioFreq)
   Mems_Config();
 
   /* EXTI configue to detect interrupts on Z axis click and on Y axis high event */
-  EXTILine_Config();
+  //EXTILine_Config();
 
   /* Initialize I2S interface */
   EVAL_AUDIO_SetAudioInterface(AUDIO_INTERFACE_I2S);
@@ -647,20 +647,21 @@ static void EXTILine_Config(void)
   GPIO_InitTypeDef   GPIO_InitStructure;
   NVIC_InitTypeDef   NVIC_InitStructure;
   EXTI_InitTypeDef   EXTI_InitStructure;
-  /* Enable GPIOA clock */
+  // Enable GPIOA clock
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-  /* Enable SYSCFG clock */
+  // Enable SYSCFG clock
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-  /* Configure PE0 and PE1 pins as input floating */
+  // Configure PE0 and PE1 pins as input floating
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;
   GPIO_Init(GPIOE, &GPIO_InitStructure);
-
-  /* Connect EXTI Line to PE1 pins */
+  //test
+/*
+  // Connect EXTI Line to PE1 pins
   SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource1);
 
-  /* Configure EXTI Line1 */
+  // Configure EXTI Line1
   EXTI_InitStructure.EXTI_Line = EXTI_Line1;
   EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
@@ -669,12 +670,13 @@ static void EXTILine_Config(void)
 
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_3);
 
-  /* Enable and set EXTI Line0 Interrupt to the lowest priority */
+  // Enable and set EXTI Line0 Interrupt to the lowest priority
   NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
+  */
 }
 
 #ifdef  USE_FULL_ASSERT

@@ -64,7 +64,8 @@ int main(void)
   RepeatState = 0;
   LED_Toggle = 7;
 
-  STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI); //ndr add //!!!!
+  //BUTTON_USER setup to trigger interrupt 0:
+  STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI);
 
   WavePlayBack(I2S_AudioFreq_48k);
 
