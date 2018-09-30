@@ -40,27 +40,6 @@ extern uint16_t AUDIO_SAMPLE[];
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#if defined MEDIA_USB_KEY
- extern __IO uint8_t Command_index;
- static uint32_t wavelen = 0;
- static char* WaveFileName ;
- static __IO uint32_t SpeechDataOffset = 0x00;
- __IO ErrorCode WaveFileStatus = Unvalid_RIFF_ID;
- UINT BytesRead;
- WAVE_FormatTypeDef WAVE_Format;
- uint16_t buffer1[_MAX_SS] ={0x00};
- uint16_t buffer2[_MAX_SS] ={0x00};
- uint8_t buffer_switch = 1;
- extern FATFS fatfs;
- extern FIL file;
- extern FIL fileR;
- extern DIR dir;
- extern FILINFO fno;
- extern uint16_t *CurrentPos;
- extern USB_OTG_CORE_HANDLE USB_OTG_Core;
- extern uint8_t WaveRecStatus;
-#endif
-
 __IO uint32_t XferCplt = 0;
 __IO uint8_t volume = 70, AudioPlayStart = 0;
 __IO uint32_t WaveCounter;
@@ -110,7 +89,6 @@ void WavePlayBack(uint32_t AudioFreq)
   /* Start playing */
   AudioPlayStart = 1;
   RepeatState =0;
-#if defined MEDIA_IntFLASH
 
   /* Initialize wave player (Codec, DMA, I2C) */
   WavePlayerInit(AudioFreq);
@@ -152,88 +130,6 @@ void WavePlayBack(uint32_t AudioFreq)
       LED_Toggle = 4;
     }
   }
-
-#elif defined MEDIA_USB_KEY
-  /* Initialize wave player (Codec, DMA, I2C) */
-  WavePlayerInit(AudioFreq);
-  AudioRemSize   = 0;
-
-  /* Get Data from USB Key */
-  f_lseek(&fileR, WaveCounter);
-  f_read (&fileR, buffer1, _MAX_SS, &BytesRead);
-  f_read (&fileR, buffer2, _MAX_SS, &BytesRead);
-
-  /* Start playing wave */
-  Audio_MAL_Play((uint32_t)buffer1, _MAX_SS);
-  buffer_switch = 1;
-  XferCplt = 0;
-  LED_Toggle = 6;
-  PauseResumeStatus = 1;
-  Count = 0;
-
-  while((WaveDataLength != 0) &&  HCD_IsDeviceConnected(&USB_OTG_Core))
-  {
-    /* Test on the command: Playing */
-    if (Command_index == 0)
-    {
-      /* wait for DMA transfert complete */
-      while((XferCplt == 0) &&  HCD_IsDeviceConnected(&USB_OTG_Core))
-      {
-        if (PauseResumeStatus == 0)
-        {
-          /* Pause Playing wave */
-          LED_Toggle = 0;
-          WavePlayerPauseResume(PauseResumeStatus);
-          PauseResumeStatus = 2;
-        }
-        else if (PauseResumeStatus == 1)
-        {
-          LED_Toggle = 6;
-          /* Resume Playing wave */
-          WavePlayerPauseResume(PauseResumeStatus);
-          PauseResumeStatus = 2;
-        }
-      }
-      XferCplt = 0;
-
-      if(buffer_switch == 0)
-      {
-        /* Play data from buffer1 */
-        Audio_MAL_Play((uint32_t)buffer1, _MAX_SS);
-        /* Store data in buffer2 */
-        f_read (&fileR, buffer2, _MAX_SS, &BytesRead);
-        buffer_switch = 1;
-      }
-      else
-      {
-        /* Play data from buffer2 */
-        Audio_MAL_Play((uint32_t)buffer2, _MAX_SS);
-        /* Store data in buffer1 */
-        f_read (&fileR, buffer1, _MAX_SS, &BytesRead);
-        buffer_switch = 0;
-      }
-    }
-    else
-    {
-      WavePlayerStop();
-      WaveDataLength = 0;
-      RepeatState =0;
-      break;
-    }
-  }
-#if defined PLAY_REPEAT_OFF
-  RepeatState = 1;
-  WavePlayerStop();
-  if (Command_index == 0)
-    LED_Toggle = 4;
-#else
-  LED_Toggle = 7;
-  RepeatState = 0;
-  AudioPlayStart = 0;
-  WavePlayerStop();
-#endif
-#endif
-
 }
 
 /**
@@ -280,7 +176,7 @@ int WavePlayerInit(uint32_t AudioFreq)
   Mems_Config();
 
   /* EXTI configue to detect interrupts on Z axis click and on Y axis high event */
-  EXTILine_Config();
+  //EXTILine_Config();
 
   /* Initialize I2S interface */
   EVAL_AUDIO_SetAudioInterface(AUDIO_INTERFACE_I2S);
@@ -751,20 +647,21 @@ static void EXTILine_Config(void)
   GPIO_InitTypeDef   GPIO_InitStructure;
   NVIC_InitTypeDef   NVIC_InitStructure;
   EXTI_InitTypeDef   EXTI_InitStructure;
-  /* Enable GPIOA clock */
+  // Enable GPIOA clock
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-  /* Enable SYSCFG clock */
+  // Enable SYSCFG clock
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-  /* Configure PE0 and PE1 pins as input floating */
+  // Configure PE0 and PE1 pins as input floating
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;
   GPIO_Init(GPIOE, &GPIO_InitStructure);
-
-  /* Connect EXTI Line to PE1 pins */
+  //test
+/*
+  // Connect EXTI Line to PE1 pins
   SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource1);
 
-  /* Configure EXTI Line1 */
+  // Configure EXTI Line1
   EXTI_InitStructure.EXTI_Line = EXTI_Line1;
   EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
@@ -773,12 +670,13 @@ static void EXTILine_Config(void)
 
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_3);
 
-  /* Enable and set EXTI Line0 Interrupt to the lowest priority */
+  // Enable and set EXTI Line0 Interrupt to the lowest priority
   NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
+  */
 }
 
 #ifdef  USE_FULL_ASSERT

@@ -28,11 +28,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#if defined MEDIA_USB_KEY
- USB_OTG_CORE_HANDLE          USB_OTG_Core;
- USBH_HOST                    USB_Host;
-#endif
-
 RCC_ClocksTypeDef RCC_Clocks;
 __IO uint8_t RepeatState = 0;
 __IO uint16_t CCR_Val = 16826;
@@ -69,30 +64,12 @@ int main(void)
   RepeatState = 0;
   LED_Toggle = 7;
 
-#if defined MEDIA_IntFLASH
+  //BUTTON_USER setup to trigger interrupt 0:
+  STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI);
 
-  STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI); //ndr add
-  
   WavePlayBack(I2S_AudioFreq_48k);
 
   while (1);
-
-#elif defined MEDIA_USB_KEY
-
-  /* Initialize User Button */
-  STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_EXTI);
-
-  /* Init Host Library */
-  USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_Callbacks);
-
-  while (1)
-  {
-    /* Host Task handler */
-    USBH_Process(&USB_OTG_Core, &USB_Host);
-  }
-
-#endif
-
 }
 
 /**
